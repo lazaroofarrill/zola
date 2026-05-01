@@ -139,6 +139,13 @@ impl TeraFn for GetPage {
         let lang =
             optional_arg!(String, args.get("lang"), "`get_section`: `lang` must be a string");
 
+        let allow_missing = optional_arg!(
+            bool,
+            args.get("allow_missing"),
+            "`get_page`: `allow_missing` must be a boolean (true or false)"
+        )
+        .unwrap_or(false);
+
         get_path_with_lang(&path, lang.as_deref(), &self.default_lang, &self.supported_languages)
             .and_then(|path_with_lang| {
                 let full_path = self.base_path.join(path_with_lang.as_ref());
@@ -146,13 +153,19 @@ impl TeraFn for GetPage {
 
                 match library.pages.get(&full_path) {
                     Some(p) => Ok(to_value(p.serialize(&library)).unwrap()),
-                    None => match lang {
-                        Some(lang_code) => {
-                            Err(format!("Page `{}` not found for language `{}`.", path, lang_code)
-                                .into())
+                    None => {
+                        if allow_missing {
+                            return Ok(Value::Null);
                         }
-                        None => Err(format!("Page `{}` not found.", path).into()),
-                    },
+                        match lang {
+                            Some(lang_code) => Err(format!(
+                                "Page `{}` not found for language `{}`.",
+                                path, lang_code
+                            )
+                            .into()),
+                            None => Err(format!("Page `{}` not found.", path).into()),
+                        }
+                    }
                 }
             })
     }
@@ -428,6 +441,13 @@ mod tests {
         let res = static_fn.call(&args).unwrap();
         let res_obj = res.as_object().unwrap();
         assert_eq!(res_obj["title"], to_value("Recipes").unwrap());
+
+        // Return null with allow_missing
+        args = HashMap::new();
+        args.insert("path".to_string(), to_value("wiki/recipes2.md").unwrap());
+        args.insert("allow_missing".to_string(), to_value(true).unwrap());
+        let res = static_fn.call(&args).unwrap();
+        assert_eq!(Value::Null, res);
     }
 
     fn create_section(title: &str, file_path: &str, lang: &str) -> Section {
