@@ -22,10 +22,7 @@ Zola uses [Giallo](https://github.com/getzola/giallo), a library that uses VSCod
 
 You can see a full list of supported languages and themes in the README: <https://github.com/getzola/giallo?tab=readme-ov-file#built-in>
 
-If a theme or a language you want to highlight is not supported, you can find the JSON grammar files and JSON theme files, copy them somewhere in your site
-and load them from the configurations with `extra_grammars` and `extra_themes` in the `[markdown.highlighting]` section.
-
-In any cases, you will need to add the following CSS to your site CSS for things to display correctly:
+You will need to add the following CSS to your site CSS for things to display correctly:
 
 ```css
 .giallo-l {
@@ -43,6 +40,29 @@ In any cases, you will need to add the following CSS to your site CSS for things
     opacity: 0.8;
 }
 ```
+
+## Adding extra grammars and themes
+
+You can easily add grammars and themes from VSCode in JSON format.
+
+Place the JSON files anywhere in your site and register them in `zola.toml`: paths are resolved from the directory containing the `zola.toml` file.
+
+```toml
+[markdown.highlighting]
+extra_grammars = ["extra/sylph_lang.json"]
+extra_themes = ["extra/custom_gruvbox.json"]
+```
+
+To use a grammar in a fenced code block, set the language tag to the value of the grammar's top-level `name` field (case-insensitive).
+For example, with a grammar which contains `"name": "sylph"`:
+
+````
+```sylph
+let x = 42;
+```
+````
+
+As for themes, the value to set in `zola.toml` is also the `name` field of the JSON theme file.
 
 ## Theme selection
 
