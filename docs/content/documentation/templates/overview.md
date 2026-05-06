@@ -162,6 +162,21 @@ If selecting a specific language for the page, you can pass `lang` with the lang
 
 ```
 
+If you want to ignore a missing page instead of raising an error, like in the case where you have a link to a draft page you want to handle yourself, you can pass `allow_missing=true` to the function:
+
+```jinja
+{% raw -%}
+{% set linked_page = get_page(path='blog/path-to-draft.md', allow_missing=true) %}
+{% if linked_page %}
+<a href="{{get_url(path='@/blog/page-in-draft.md')}}">
+    {{linked_page.title}}
+</a>
+{% else %}
+<span></span>
+{% endif %}
+
+```
+
 ### `get_section`
 Takes a path to an `_index.md` file and returns the associated section. The base path is the `content` directory.
 
